@@ -1,0 +1,84 @@
+﻿@model ABCRetail.Models.OrderEntity
+
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+
+            <div class="mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Orders
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="bg-primary bg-gradient text-white p-4 p-md-5 text-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 90px; height: 90px;">
+                        <i class="bi bi-cart-check-fill text-white" style="font-size: 2.8rem;"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">@Model.ProductName</h2>
+                    <p class="mb-0 opacity-75">Order Details</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="row g-4 mb-4">
+                        <div class="col-sm-4">
+                            <div class="bg-light rounded-3 p-3 h-100">
+                                <div class="text-muted small text-uppercase fw-semibold mb-1">Product</div>
+                                <div class="fs-5 fw-semibold">@Model.ProductName</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="bg-light rounded-3 p-3 h-100">
+                                <div class="text-muted small text-uppercase fw-semibold mb-1">Quantity</div>
+                                <div class="fs-5 fw-semibold">@Model.Quantity</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="bg-light rounded-3 p-3 h-100">
+                                <div class="text-muted small text-uppercase fw-semibold mb-1">Price</div>
+                                <div class="fs-5 fw-semibold text-success">R @Model.Price</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3 mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="text-muted small text-uppercase fw-semibold mb-1">Partition Key</div>
+                                <code class="small">@Model.PartitionKey</code>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-muted small text-uppercase fw-semibold mb-1">Row Key</div>
+                                <code class="small text-break">@Model.RowKey</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a asp-action="Edit"
+                           asp-route-partitionKey="@Model.PartitionKey"
+                           asp-route-rowKey="@Model.RowKey"
+                           class="btn btn-primary rounded-pill px-4 py-2">
+                            <i class="bi bi-pencil me-2"></i>Edit Order
+                        </a>
+                        <a asp-action="Delete"
+                           asp-route-partitionKey="@Model.PartitionKey"
+                           asp-route-rowKey="@Model.RowKey"
+                           class="btn btn-outline-danger rounded-pill px-4 py-2">
+                            <i class="bi bi-trash me-2"></i>Delete
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2 ms-auto">
+                            Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

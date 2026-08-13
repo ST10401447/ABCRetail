@@ -1,0 +1,63 @@
+﻿@model List<ABCRetail.Models.ProductImage>
+
+@{
+    ViewData["Title"] = "Products";
+}
+
+<h2>Products</h2>
+<hr />
+
+<h4>Upload New Image</h4>
+<form asp-action="Upload" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label class="form-label">Select Image</label>
+        <input type="file" name="file" class="form-control" accept="image/*" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Upload Image</button>
+</form>
+
+<br />
+
+<h4>All Product Images</h4>
+
+@if (Model.Count == 0)
+{
+    <p>No images uploaded yet.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var image in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img src="@image.Url" class="card-img-top" alt="@image.FileName"
+                         style="height: 200px; object-fit: cover;"
+                         onerror="this.style.display='none'" />
+
+                    <div class="card-body">
+                        <p class="card-text text-truncate">@image.FileName</p>
+
+                        <a asp-action="Delete"
+                           asp-route-fileName="@image.FileName"
+                           class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+
+                        <hr />
+
+                        <!-- Replace / Edit -->
+                        <form asp-action="Replace" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="oldFileName" value="@image.FileName" />
+                            <div class="mb-2">
+                                <label class="form-label">Replace image:</label>
+                                <input type="file" name="newFile" class="form-control form-control-sm" accept="image/*" required />
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-sm">Replace</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

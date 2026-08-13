@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "View Log File";
+}
+
+<h2>View Log File</h2>
+<hr />
+
+<div class="mb-3">
+    <strong>File Name:</strong> @ViewBag.FileName
+</div>
+
+<div class="card">
+    <div class="card-header">Log Content</div>
+    <div class="card-body">
+        <pre style="white-space: pre-wrap;">@ViewBag.Content</pre>
+    </div>
+</div>
+
+<br />
+<a asp-action="Index" class="btn btn-secondary">Back to Log Files</a>

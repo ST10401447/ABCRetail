@@ -1,0 +1,89 @@
+﻿@model List<ABCRetail.Models.QueueMessageViewModel>
+@{
+    ViewData["Title"] = "Order Messages";
+    int counter = 1;
+}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Order Messages</h2>
+            <p class="text-muted mb-0">View and manage messages in the order queue</p>
+        </div>
+    </div>
+
+    <!-- Send New Message Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-send me-2 text-primary"></i>Send New Message
+            </h5>
+            <form asp-action="SendMessage" method="post" class="row g-3 align-items-end">
+                <div class="col-md-9">
+                    <label class="form-label fw-semibold">Message Text</label>
+                    <input type="text" name="messageText" class="form-control form-control-lg"
+                           placeholder="e.g. Processing order: product-image-01.jpg" required />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-send me-1"></i> Send Message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Messages Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-4 text-muted"></i>
+                    <h5 class="text-muted mt-3">No messages in the queue</h5>
+                    <p class="text-muted mb-0">Send a new message using the form above.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="table-header-blue">
+                                <th class="ps-4" style="width: 80px;">ID</th>
+                                <th>Message</th>
+                                <th style="width: 200px;">Inserted On</th>
+                                <th class="text-end pe-4" style="width: 200px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var msg in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold">@counter</td>
+                                    <td>@msg.MessageText</td>
+                                    <td class="text-muted">@msg.InsertedOn?.ToString("yyyy/MM/dd HH:mm:ss")</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a asp-action="Details"
+                                               asp-route-messageId="@msg.MessageId"
+                                               class="btn btn-outline-secondary btn-sm">
+                                                <i class="bi bi-eye"></i> Details
+                                            </a>
+                                            <a asp-action="Delete"
+                                               asp-route-messageId="@msg.MessageId"
+                                               class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                counter++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

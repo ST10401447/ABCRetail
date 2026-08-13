@@ -1,0 +1,81 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container py-5">
+        <h1 class="display-3 fw-bold mb-3">Welcome to ABC Retail</h1>
+        <p class="lead mb-4 fs-4">
+            Quality products. Fast delivery. Exceptional service.
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a asp-controller="Products" asp-action="Index" class="btn btn-light btn-lg px-4 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-bag-check me-2"></i> Shop Products
+            </a>
+            <a asp-controller="Customers" asp-action="Index" class="btn btn-outline-light btn-lg px-4 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-people me-2"></i> Our Customers
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Why Shop With Us?</h2>
+            <p class="text-muted">Experience the difference with ABC Retail</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4 rounded-4">
+                    <div class="mb-3">
+                        <i class="bi bi-truck text-primary" style="font-size: 2.8rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">Fast Delivery</h5>
+                    <p class="text-muted mb-0">
+                        Quick and reliable shipping so your orders arrive on time.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4 rounded-4">
+                    <div class="mb-3">
+                        <i class="bi bi-shield-check text-primary" style="font-size: 2.8rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">Trusted Quality</h5>
+                    <p class="text-muted mb-0">
+                        Carefully selected products that meet high quality standards.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4 rounded-4">
+                    <div class="mb-3">
+                        <i class="bi bi-headset text-primary" style="font-size: 2.8rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">Great Support</h5>
+                    <p class="text-muted mb-0">
+                        Friendly customer service ready to help whenever you need it.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-light text-center">
+    <div class="container">
+        <h3 class="fw-bold mb-3">Discover Our Latest Products</h3>
+        <p class="text-muted mb-4">Browse our catalogue and find something you’ll love.</p>
+        <a asp-controller="Products" asp-action="Index" class="btn btn-primary btn-lg px-5 rounded-pill">
+            <i class="bi bi-bag me-2"></i> View Products
+        </a>
+    </div>
+</section>

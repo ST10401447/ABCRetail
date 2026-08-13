@@ -1,0 +1,92 @@
+﻿@model List<ABCRetail.Models.CustomerProfile>
+
+@{
+    ViewData["Title"] = "Customers";
+    int customerId = 1;
+}
+
+<div class="container-fluid px-5 py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Customers</h2>
+            <p class="text-muted mb-0">Manage your customer profiles</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-person-plus me-1"></i> Add New Customer
+        </a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No customers found</h4>
+            <p class="text-muted">Get started by adding your first customer.</p>
+            <a asp-action="Create" class="btn btn-primary mt-2">
+                <i class="bi bi-person-plus me-1"></i> Add Customer
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 w-100">
+                        <thead>
+                            <tr class="table-header-blue">
+                                <th class="ps-4 text-nowrap" style="width: 80px;">ID</th>
+                                <th class="text-nowrap">Full Name</th>
+                                <th class="text-nowrap">Email</th>
+                                <th class="text-nowrap">Phone Number</th>
+                                <th class="text-nowrap">Address</th>
+                                <th class="text-nowrap">City</th>
+                                <th class="text-nowrap">Postal Code</th>
+                                <th class="text-end pe-4 text-nowrap" style="width: 280px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var customer in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold">@customerId</td>
+                                    <td class="fw-semibold text-nowrap">@customer.FullName</td>
+                                    <td class="text-nowrap">@customer.Email</td>
+                                    <td class="text-nowrap">@customer.PhoneNumber</td>
+                                    <td>@customer.Address</td>
+                                    <td class="text-nowrap">@customer.City</td>
+                                    <td class="text-nowrap">@customer.PostalCode</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2 flex-nowrap">
+                                            <a asp-action="Details"
+                                               asp-route-partitionKey="@customer.PartitionKey"
+                                               asp-route-rowKey="@customer.RowKey"
+                                               class="btn btn-outline-warning btn-sm text-nowrap">
+                                                <i class="bi bi-eye"></i> Details
+                                            </a>
+                                            <a asp-action="Edit"
+                                               asp-route-partitionKey="@customer.PartitionKey"
+                                               asp-route-rowKey="@customer.RowKey"
+                                               class="btn btn-outline-primary btn-sm text-nowrap">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            <a asp-action="Delete"
+                                               asp-route-partitionKey="@customer.PartitionKey"
+                                               asp-route-rowKey="@customer.RowKey"
+                                               class="btn btn-outline-danger btn-sm text-nowrap">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                customerId++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

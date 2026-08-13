@@ -1,0 +1,54 @@
+﻿@model ABCRetail.Models.QueueMessageViewModel
+
+@{
+    ViewData["Title"] = "Delete Message";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="bg-danger bg-gradient text-white p-4 text-center">
+                    <h3 class="mb-1 fw-bold">
+                        <i class="bi bi-trash3-fill me-2"></i>Delete Message
+                    </h3>
+                    <p class="mb-0 opacity-75">This action cannot be undone</p>
+                </div>
+
+                <div class="card-body p-4 text-center">
+                    <div class="bg-light rounded-3 p-3 mb-4 text-start">
+                        <small class="text-muted d-block">Message</small>
+                        <strong>@Model.MessageText</strong>
+
+                        <hr />
+
+                        <small class="text-muted d-block">Message ID</small>
+                        <code>@Model.MessageId</code>
+
+                        <div class="mt-2">
+                            <small class="text-muted d-block">Inserted On</small>
+                            <span>@Model.InsertedOn?.ToString("yyyy/MM/dd HH:mm:ss")</span>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small mb-4">
+                        Are you sure you want to permanently delete this message from the queue?
+                    </p>
+
+                    <form asp-action="Delete" method="post" class="d-flex justify-content-center gap-3">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="messageId" value="@Model.MessageId" />
+                       
+
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2 rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-danger px-4 py-2 rounded-pill">
+                            <i class="bi bi-trash3 me-1"></i> Yes, Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

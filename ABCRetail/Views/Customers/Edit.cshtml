@@ -1,0 +1,104 @@
+﻿@model ABCRetail.Models.CustomerProfile
+
+@{
+    ViewData["Title"] = "Edit Customer";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+
+            <!-- Back button -->
+            <div class="mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Customers
+                </a>
+            </div>
+
+            <!-- Main Card -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- Header -->
+                <div class="bg-warning bg-gradient text-dark p-4 p-md-5 text-center">
+                    <div class="bg-white bg-opacity-50 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 90px; height: 90px;">
+                        <i class="bi bi-pencil-square text-dark" style="font-size: 2.8rem;"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Edit Customer</h2>
+                    <p class="mb-0 opacity-75">Update the customer information below</p>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body p-4 p-md-5">
+
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" asp-for="PartitionKey" />
+                        <input type="hidden" asp-for="RowKey" />
+                        <input type="hidden" asp-for="ETag" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+                                <input asp-for="FullName" class="form-control form-control-lg" required />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label asp-for="Email" class="form-label fw-semibold">Email</label>
+                                <input asp-for="Email" class="form-control form-control-lg" type="email" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control form-control-lg" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PostalCode" class="form-label fw-semibold">Postal Code</label>
+                                <input asp-for="PostalCode" class="form-control form-control-lg" />
+                                <span asp-validation-for="PostalCode" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label asp-for="Address" class="form-label fw-semibold">Address</label>
+                                <input asp-for="Address" class="form-control form-control-lg" />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label asp-for="City" class="form-label fw-semibold">City</label>
+                                <input asp-for="City" class="form-control form-control-lg" />
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex flex-wrap gap-3 mt-5">
+                            <button type="submit" class="btn btn-warning rounded-pill px-4 py-2">
+                                <i class="bi bi-check-lg me-2"></i>Save Changes
+                            </button>
+
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

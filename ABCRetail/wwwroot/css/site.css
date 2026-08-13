@@ -1,0 +1,192 @@
+﻿html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    margin-bottom: 60px;
+    overflow-x: hidden;
+}
+
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* Product Cards */
+.product-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12) !important;
+    }
+
+.product-image-wrapper {
+    height: 200px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Home Page Hero */
+.hero-section {
+    position: relative;
+    min-height: 100vh;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    background-image: url('/images/ABC_Retail_Hero_Image.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65));
+    z-index: 1;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* ========== Professional Navbar ========== */
+.navbar {
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: 0.85rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+    .navbar .container-fluid {
+        padding-left: 2rem;
+        padding-right: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #1a1a2e !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.3px;
+    margin-right: auto;
+}
+
+    .navbar-brand:hover {
+        color: #0d6efd !important;
+    }
+
+    .navbar-brand i,
+    .navbar-brand img {
+        font-size: 1.6rem;
+        color: #0d6efd;
+        object-fit: contain;
+    }
+
+.navbar-nav {
+    gap: 0.5rem;
+}
+
+    /* More visible nav buttons */
+    .navbar-nav .nav-link {
+        color: #1a1a2e !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        padding: 0.6rem 1.25rem !important;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+        .navbar-nav .nav-link:hover {
+            color: #0d6efd !important;
+            background-color: rgba(13, 110, 253, 0.1) !important;
+            border-color: rgba(13, 110, 253, 0.2);
+        }
+
+        .navbar-nav .nav-link.active {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            background-color: #0d6efd !important;
+            border-color: #0d6efd;
+        }
+
+.navbar .navbar-collapse {
+    justify-content: center !important;
+}
+
+@media (max-width: 991.98px) {
+    .navbar .navbar-collapse {
+        justify-content: flex-start !important;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* Table Header */
+.table-header-blue {
+    background-color: #0d6efd !important;
+    color: white !important;
+}
+
+    .table-header-blue th {
+        background-color: #0d6efd !important;
+        color: white !important;
+        border-color: #0d6efd !important;
+    }

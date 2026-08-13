@@ -1,0 +1,53 @@
+﻿@model ABCRetail.Models.LogFile
+
+@{
+    ViewData["Title"] = "Delete Log File";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Header -->
+                <div class="bg-danger bg-gradient text-white p-4 text-center">
+                    <h3 class="mb-1 fw-bold">
+                        <i class="bi bi-trash3-fill me-2"></i>Delete Log File
+                    </h3>
+                    <p class="mb-0 opacity-75">This action cannot be undone</p>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 80px; height: 80px;">
+                            <i class="bi bi-file-earmark-text text-secondary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="fw-semibold mb-1">@Model.FileName</h5>
+                        <p class="text-muted mb-0">Size: @Model.FileSize bytes</p>
+                    </div>
+
+                    <p class="text-muted small mb-4">
+                        Are you sure you want to permanently delete this log file from Azure File Share?
+                    </p>
+
+                    <!-- Action buttons -->
+                    <form asp-action="Delete" method="post" class="d-flex justify-content-center gap-3">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="fileName" value="@Model.FileName" />
+
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                            Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-danger px-4 py-2 rounded-pill">
+                            <i class="bi bi-trash3 me-1"></i> Yes, Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,151 @@
+﻿@model ABCRetail.Models.ProductEntity
+
+@{
+    ViewData["Title"] = "Edit Product";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1">Edit Product</h2>
+                <p class="text-muted mb-0">Update the product details below</p>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Hidden keys (required for update) -->
+                        <input type="hidden" asp-for="PartitionKey" />
+                        <input type="hidden" asp-for="RowKey" />
+                        <input type="hidden" asp-for="ETag" />
+                        <input type="hidden" asp-for="ProductImageUrl" />
+
+                        <!-- Product Name -->
+                        <div class="mb-3">
+                            <label asp-for="ProductName" class="form-label fw-semibold">Product Name</label>
+                            <input asp-for="ProductName" class="form-control form-control-lg" placeholder="e.g. Wireless Headphones" />
+                            <span asp-validation-for="ProductName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-semibold">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Enter a short product description..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Price & Stock -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label fw-semibold">Price (R)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R</span>
+                                    <input asp-for="Price" class="form-control" type="number" min="0" placeholder="0" />
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="StockQuantity" class="form-label fw-semibold">Stock Quantity</label>
+                                <input asp-for="StockQuantity" class="form-control" type="number" min="0" placeholder="0" />
+                                <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Current Image + New Image Upload -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Product Image</label>
+
+                            <!-- Current Image Preview -->
+                            @if (!string.IsNullOrEmpty(Model.ProductImageUrl))
+                            {
+                                <div class="mb-3 p-3 border rounded-3 bg-light">
+                                    <p class="small text-muted mb-2">Current Image</p>
+                                    <img src="@Model.ProductImageUrl"
+                                         alt="Current product image"
+                                         class="img-fluid rounded shadow-sm"
+                                         style="max-height: 180px; object-fit: contain;" />
+                                </div>
+                            }
+
+                            <!-- New Image Upload -->
+                            <div class="border rounded-3 p-4 text-center bg-light">
+                                <div id="imagePreview" class="mb-3 d-none">
+                                    <p class="small text-muted mb-2">New Image Preview</p>
+                                    <img id="previewImg" src="#" alt="Preview"
+                                         class="img-fluid rounded" style="max-height: 180px;" />
+                                </div>
+
+                                <div id="uploadPrompt">
+                                    <i class="bi bi-cloud-upload display-5 text-muted mb-2"></i>
+                                    <p class="mb-1 fw-medium">Upload a new image (optional)</p>
+                                    <p class="text-muted small mb-0">Leave empty to keep the current image</p>
+                                </div>
+
+                                <input type="file" name="imageFile" id="imageFile"
+                                       class="form-control mt-3" accept="image/*" />
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center pt-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Back to List
+                            </a>
+
+                            <div class="d-flex gap-2">
+                                <a asp-action="Details"
+                                   asp-route-partitionKey="@Model.PartitionKey"
+                                   asp-route-rowKey="@Model.RowKey"
+                                   class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-check-lg me-1"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Image preview for new upload
+        document.getElementById('imageFile').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const prompt = document.getElementById('uploadPrompt');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    prompt.classList.add('d-none');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.classList.add('d-none');
+                prompt.classList.remove('d-none');
+            }
+        });
+    </script>
+}

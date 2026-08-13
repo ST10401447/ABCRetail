@@ -1,0 +1,186 @@
+﻿@model IEnumerable<ABCRetail.Models.ProductEntity>
+@{
+    ViewData["Title"] = "Products";
+    int counter = 1;
+}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Products</h2>
+            <p class="text-muted mb-0">Manage your product catalogue</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Add New Product
+        </a>
+    </div>
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-box-seam display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No products found</h4>
+            <p class="text-muted">Get started by adding your first product.</p>
+            <a asp-action="Create" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-lg me-1"></i> Add Product
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="table-header-blue">
+                                <th class="ps-4" style="width: 60px;">#</th>
+                                <th style="width: 80px;">Image</th>
+                                <th>Product Name</th>
+                                <th>Description</th>
+                                <th style="width: 120px;">Price</th>
+                                <th style="width: 110px;">Stock</th>
+                                <th style="width: 160px;">Quantity</th>
+                                <th style="width: 150px;">Total</th>
+                                <th class="text-end pe-4" style="width: 280px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model)
+                            {
+                                var cardId = product.RowKey?.Replace("-", "") ?? Guid.NewGuid().ToString("N");
+                                var unitPrice = product.Price ?? 0;
+                                <tr>
+                                    <td class="ps-4 fw-bold">@counter</td>
+                                    <!-- Image -->
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(product.ProductImageUrl))
+                                        {
+                                            <img src="@product.ProductImageUrl"
+                                                 alt="@product.ProductName"
+                                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
+                                        }
+                                </td>
+                                <td class="fw-semibold">@product.ProductName</td>
+                                <td class="text-muted small">
+                                    @(string.IsNullOrEmpty(product.Description)
+                                                                    ? "No description"
+                                                                    : (product.Description.Length > 60
+                                                                    ? product.Description.Substring(0, 60) + "..."
+                                                                    : product.Description))
+                                                                                       </td>
+                                                                                       <td>R @unitPrice.ToString("N0")</td>
+                                                                                       <td>
+                                                                                           <span class="badge @(product.StockQuantity.HasValue && product.StockQuantity.Value > 0 ? "bg-success" : "bg-danger")">
+                                        @(product.StockQuantity.HasValue && product.StockQuantity.Value > 0
+                                                                            ? $"{product.StockQuantity.Value} in stock"
+                                                                            : "Out of stock")
+                                </span>
+                            </td>
+                            <!-- Quantity -->
+                            <td>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-sm rounded-circle"
+                                            style="width: 32px; height: 32px; padding: 0;"
+                                            onclick="changeQty('@cardId', -1)">
+                                        <i class="bi bi-dash"></i>
+                                    </button>
+                                    <input type="number"
+                                           id="qty-@cardId"
+                                           value="0"
+                                           min="0"
+                                           max="@(product.StockQuantity ?? 99)"
+                                           class="form-control form-control-sm text-center fw-bold"
+                                           style="width: 55px;"
+                                           readonly />
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-sm rounded-circle"
+                                            style="width: 32px; height: 32px; padding: 0;"
+                                            onclick="changeQty('@cardId', 1)">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <!-- Total Price -->
+                            <td>
+                                <span class="fw-bold text-primary"
+                                      id="price-@cardId"
+                                      data-unitprice="@unitPrice">
+                                    R @unitPrice.ToString("N0")
+                                </span>
+                            </td>
+                            <!-- Actions -->
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-2 align-items-center">
+                                    <form asp-controller="Orders" asp-action="CreateFromProduct" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productName" value="@product.ProductName" />
+                                        <input type="hidden" name="price" value="@product.Price" />
+                                        <input type="hidden" name="quantity" id="qty-hidden-@cardId" value="0" />
+                                        <button type="submit"
+                                                id="btn-order-@cardId"
+                                                class="btn btn-success btn-sm"
+                                                disabled>
+                                            <i class="bi bi-cart-plus"></i> Order
+                                        </button>
+                                    </form>
+                                    <a asp-action="Details"
+                                       asp-route-partitionKey="@product.PartitionKey"
+                                       asp-route-rowKey="@product.RowKey"
+                                       class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                    <a asp-action="Edit"
+                                       asp-route-partitionKey="@product.PartitionKey"
+                                       asp-route-rowKey="@product.RowKey"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <a asp-action="Delete"
+                                       asp-route-partitionKey="@product.PartitionKey"
+                                       asp-route-rowKey="@product.RowKey"
+                                       class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                                                    counter++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@section Scripts {
+    <script>
+        function changeQty(cardId, delta) {
+            var input = document.getElementById('qty-' + cardId);
+            var hidden = document.getElementById('qty-hidden-' + cardId);
+            var button = document.getElementById('btn-order-' + cardId);
+            var priceLabel = document.getElementById('price-' + cardId);
+            var current = parseInt(input.value) || 0;
+            var max = parseInt(input.max) || 99;
+            var next = current + delta;
+            if (next < 0) next = 0;
+            if (next > max) next = max;
+            input.value = next;
+            hidden.value = next;
+            // Update total price (show unit price when qty is 0)
+            var unitPrice = parseFloat(priceLabel.getAttribute('data-unitprice')) || 0;
+            var total = next === 0 ? unitPrice : unitPrice * next;
+            priceLabel.innerText = 'R ' + total.toLocaleString('en-ZA');
+            // Enable button only when quantity >= 1
+            button.disabled = next < 1;
+        }
+    </script>
+}
