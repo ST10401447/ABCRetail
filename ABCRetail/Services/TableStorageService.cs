@@ -1,66 +1,105 @@
 ﻿using ABCRetail.Models;
-using Azure;
-using Azure.Data.Tables;
-using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Net.Http.Json;
 
 namespace ABCRetail.Services
 {
     public class TableStorageService
     {
-        private readonly TableClient tableClient;
+        private readonly HttpClient _httpClient;
 
-        public TableStorageService(TableServiceClient tableServiceClient, IConfiguration configuration)
+        public TableStorageService(HttpClient httpClient)
         {
-            string tableName = configuration["AzureStorage:TableName"];
-            tableClient = tableServiceClient.GetTableClient(tableName);
-            tableClient.CreateIfNotExists();
+            _httpClient = httpClient;
+            _httpClient.BaseAddress =
+                new Uri("http://localhost:7191/api/");
         }
 
+        // POST /api/customers
         // Adds a new customer
         public async Task AddCustomerAsync(CustomerProfile customer)
         {
-            customer.PartitionKey = "Customer";
-            customer.RowKey = Guid.NewGuid().ToString();
-            await tableClient.AddEntityAsync(customer);
+            HttpResponseMessage response =
+                await _httpClient.PostAsJsonAsync(
+                    "customers",
+                    customer);
+
+            response.EnsureSuccessStatusCode();
         }
 
+        // GET /api/customers
         // Gets all customers
         public async Task<List<CustomerProfile>> GetAllCustomersAsync()
         {
-            var customers = new List<CustomerProfile>();
+            HttpResponseMessage response =
+                await _httpClient.GetAsync("customers");
 
-            await foreach (CustomerProfile entity in tableClient.QueryAsync<CustomerProfile>())
-            {
-                customers.Add(entity);
-            }
+            response.EnsureSuccessStatusCode();
 
-            return customers;
+            var customers =
+                await response.Content
+                    .ReadFromJsonAsync<List<CustomerProfile>>();
+
+            return customers ?? new List<CustomerProfile>();
         }
 
+        // GET /api/customers/{partitionKey}/{rowKey}
         // Gets a single customer
-        public async Task<CustomerProfile?> GetCustomerAsync(string partitionKey, string rowKey)
+        public async Task<CustomerProfile?> GetCustomerAsync(
+            string partitionKey,
+            string rowKey)
         {
-            try
-            {
-                var response = await tableClient.GetEntityAsync<CustomerProfile>(partitionKey, rowKey);
-                return response.Value;
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
+            string url =
+                $"customers/{Uri.EscapeDataString(partitionKey)}/{Uri.EscapeDataString(rowKey)}";
+
+            HttpResponseMessage response =
+                await _httpClient.GetAsync(url);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
             }
+
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content
+                .ReadFromJsonAsync<CustomerProfile>();
         }
 
+        // PUT /api/customers/{partitionKey}/{rowKey}
         // Updates a customer
-        public async Task UpdateCustomerAsync(CustomerProfile customer)
+        public async Task UpdateCustomerAsync(
+            CustomerProfile customer)
         {
-            await tableClient.UpdateEntityAsync(customer, ETag.All, TableUpdateMode.Replace);
+            string url =
+                $"customers/{Uri.EscapeDataString(customer.PartitionKey)}/{Uri.EscapeDataString(customer.RowKey)}";
+
+            HttpResponseMessage response =
+                await _httpClient.PutAsJsonAsync(
+                    url,
+                    customer);
+
+            response.EnsureSuccessStatusCode();
         }
 
+        // DELETE /api/customers/{partitionKey}/{rowKey}
         // Deletes a customer
-        public async Task DeleteCustomerAsync(string partitionKey, string rowKey)
+        public async Task DeleteCustomerAsync(
+            string partitionKey,
+            string rowKey)
         {
-            await tableClient.DeleteEntityAsync(partitionKey, rowKey);
+            string url =
+                $"customers/{Uri.EscapeDataString(partitionKey)}/{Uri.EscapeDataString(rowKey)}";
+
+            HttpResponseMessage response =
+                await _httpClient.DeleteAsync(url);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
         }
     }
 }

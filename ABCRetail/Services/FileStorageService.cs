@@ -1,81 +1,117 @@
-﻿using Azure.Storage.Files.Shares;
-using Azure.Storage.Files.Shares.Models;
-using Microsoft.Extensions.Configuration;
+﻿
 using ABCRetail.Models;
+using ABCRetail.Services;
+using System;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 
 namespace ABCRetail.Services
 {
     public class FileStorageService
     {
-        private readonly ShareClient shareClient;
+        private readonly HttpClient _httpClient;
 
-        public FileStorageService(ShareServiceClient shareServiceClient, IConfiguration configuration)
+        public FileStorageService(HttpClient httpClient)
         {
-            string shareName = configuration["AzureStorage:FileSharedName"];
-            shareClient = shareServiceClient.GetShareClient(shareName);
-            shareClient.CreateIfNotExists();
+            _httpClient = httpClient;
+            _httpClient.BaseAddress =
+                new Uri("http://localhost:7015/api/");
         }
 
-        // Upload a file 
-        public async Task UploadFileAsync(Stream fileStream, string fileName)
+        // CREATE - Upload a file
+        public async Task<bool> UploadFileAsync(
+            Stream fileStream,
+            string fileName)
         {
-            ShareDirectoryClient rootDirectory = shareClient.GetRootDirectoryClient();
-            ShareFileClient fileClient = rootDirectory.GetFileClient(fileName);
+            using var content = new StreamContent(fileStream);
 
-            await fileClient.CreateAsync(fileStream.Length);
-            await fileClient.UploadAsync(fileStream);
+            content.Headers.ContentType =
+                new MediaTypeHeaderValue("application/octet-stream");
+
+            HttpResponseMessage response =
+                await _httpClient.PostAsync(
+                    $"files?fileName={Uri.EscapeDataString(fileName)}",
+                    content);
+
+            return response.IsSuccessStatusCode;
         }
 
-        // Keep the old text log method if you still want it
-        public async Task UploadLogAsync(string fileName, string content)
+        // CREATE - Upload text log
+        public async Task<bool> UploadLogAsync(
+            string fileName,
+            string content)
         {
-            ShareDirectoryClient rootDirectory = shareClient.GetRootDirectoryClient();
-            ShareFileClient fileClient = rootDirectory.GetFileClient(fileName);
+            using var stream =
+                new MemoryStream(Encoding.UTF8.GetBytes(content));
 
-            byte[] bytes = Encoding.UTF8.GetBytes(content);
-            await fileClient.CreateAsync(bytes.Length);
-
-            using (MemoryStream stream = new MemoryStream(bytes))
-            {
-                await fileClient.UploadAsync(stream);
-            }
+            return await UploadFileAsync(stream, fileName);
         }
 
+        // READ - Get all files
         public async Task<List<LogFile>> GetAllLogsAsync()
         {
-            List<LogFile> logs = new List<LogFile>();
-            ShareDirectoryClient rootDirectory = shareClient.GetRootDirectoryClient();
+            HttpResponseMessage response =
+                await _httpClient.GetAsync("files");
 
-            await foreach (ShareFileItem item in rootDirectory.GetFilesAndDirectoriesAsync())
+            if (!response.IsSuccessStatusCode)
             {
-                if (!item.IsDirectory)
-                {
-                    logs.Add(new LogFile
-                    {
-                        FileName = item.Name,
-                        FileSize = item.FileSize
-                    });
-                }
+                return new List<LogFile>();
             }
 
-            return logs;
+            string json =
+                await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<List<LogFile>>(
+                json,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                })
+                ?? new List<LogFile>();
         }
 
-        public async Task<Stream> DownloadFileAsync(string fileName)
+        // READ - Download a file
+        public async Task<Stream> DownloadFileAsync(
+            string fileName)
         {
-            ShareDirectoryClient rootDirectory = shareClient.GetRootDirectoryClient();
-            ShareFileClient fileClient = rootDirectory.GetFileClient(fileName);
+            HttpResponseMessage response =
+                await _httpClient.GetAsync(
+                    $"files/{Uri.EscapeDataString(fileName)}");
 
-            ShareFileDownloadInfo download = await fileClient.DownloadAsync();
-            return download.Content;
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsStreamAsync();
         }
 
-        public async Task DeleteLogAsync(string fileName)
+        // UPDATE - Replace an existing file
+        public async Task<bool> UpdateFileAsync(
+            Stream fileStream,
+            string fileName)
         {
-            ShareDirectoryClient rootDirectory = shareClient.GetRootDirectoryClient();
-            ShareFileClient fileClient = rootDirectory.GetFileClient(fileName);
-            await fileClient.DeleteIfExistsAsync();
+            using var content =
+                new StreamContent(fileStream);
+
+            content.Headers.ContentType =
+                new MediaTypeHeaderValue("application/octet-stream");
+
+            HttpResponseMessage response =
+                await _httpClient.PutAsync(
+                    $"files/{Uri.EscapeDataString(fileName)}",
+                    content);
+
+            return response.IsSuccessStatusCode;
+        }
+
+        // DELETE - Delete a file
+        public async Task<bool> DeleteLogAsync(
+            string fileName)
+        {
+            HttpResponseMessage response =
+                await _httpClient.DeleteAsync(
+                    $"files/{Uri.EscapeDataString(fileName)}");
+
+            return response.IsSuccessStatusCode;
         }
     }
 }

@@ -1,101 +1,129 @@
-﻿using Azure.Storage.Queues;
-using Azure.Storage.Queues.Models;
-using Microsoft.Extensions.Configuration;
-using ABCRetail.Models;
+﻿using ABCRetail.Models;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text;
 
 namespace ABCRetail.Services
 {
     public class QueueStorageService
     {
-        private readonly QueueClient queueClient;
+        private readonly HttpClient _httpClient;
 
-        public QueueStorageService(QueueServiceClient queueServiceClient, IConfiguration configuration)
+        public QueueStorageService(HttpClient httpClient)
         {
-            string queueName = configuration["AzureStorage:QueueName"];
-            queueClient = queueServiceClient.GetQueueClient(queueName);
-            queueClient.CreateIfNotExists();
+            _httpClient = httpClient;
+
+            _httpClient.BaseAddress =
+                new Uri("http://localhost:7027/api/");
         }
 
-        // Sends a message to the queue
+        // POST /api/queue
+        // Sends a message
         public async Task SendMessageAsync(string messageText)
         {
-            await queueClient.SendMessageAsync(messageText);
+            if (string.IsNullOrWhiteSpace(messageText))
+            {
+                throw new ArgumentException(
+                    "Message cannot be empty.",
+                    nameof(messageText));
+            }
+
+            using var content =
+                new StringContent(
+                    messageText,
+                    Encoding.UTF8,
+                    "text/plain");
+
+            HttpResponseMessage response =
+                await _httpClient.PostAsync(
+                    "queue",
+                    content);
+
+            response.EnsureSuccessStatusCode();
         }
 
-        // Shows messages without removing them
+
+        // GET /api/queue
+        // Gets all messages
         public async Task<List<QueueMessageViewModel>> GetMessagesAsync()
         {
-            var messages = new List<QueueMessageViewModel>();
+            HttpResponseMessage response =
+                await _httpClient.GetAsync("queue");
 
-            PeekedMessage[] peekedMessages = await queueClient.PeekMessagesAsync(maxMessages: 32);
+            response.EnsureSuccessStatusCode();
 
-            foreach (var msg in peekedMessages)
-            {
-                messages.Add(new QueueMessageViewModel
-                {
-                    MessageId = msg.MessageId,
-                    MessageText = msg.MessageText,
-                    InsertedOn = msg.InsertedOn,
-                    PopReceipt = ""
-                });
-            }
+            var messages =
+                await response.Content
+                    .ReadFromJsonAsync<List<QueueMessageViewModel>>();
 
-            return messages;
+            return messages ??
+                   new List<QueueMessageViewModel>();
         }
 
-        // Finds the real message and puts all other messages back immediately
-        private async Task<QueueMessage> FindMessageAsync(string messageId)
+
+        // PUT /api/queue/{messageId}
+        // Updates a message
+        public async Task UpdateMessageAsync(
+            string messageId,
+            string newMessageText)
         {
-            var response = await queueClient.ReceiveMessagesAsync(
-                maxMessages: 32,
-                visibilityTimeout: TimeSpan.FromSeconds(30));
-
-            QueueMessage target = null;
-
-            foreach (var msg in response.Value)
+            if (string.IsNullOrWhiteSpace(messageId))
             {
-                if (msg.MessageId == messageId)
-                {
-                    target = msg;
-                }
-                else
-                {
-                  // Put this message back so it does not disappear
-                    await queueClient.UpdateMessageAsync(
-                        msg.MessageId,
-                        msg.PopReceipt,
-                        msg.MessageText,
-                        visibilityTimeout: TimeSpan.FromSeconds(0));
-                }
+                throw new ArgumentException(
+                    "Message ID cannot be empty.",
+                    nameof(messageId));
             }
 
-            return target;
-        }
-
-        // Update a message
-        public async Task UpdateMessageAsync(string messageId, string newMessageText)
-        {
-            var message = await FindMessageAsync(messageId);
-
-            if (message != null)
+            if (string.IsNullOrWhiteSpace(newMessageText))
             {
-                await queueClient.UpdateMessageAsync(
-                    message.MessageId,
-                    message.PopReceipt,
+                throw new ArgumentException(
+                    "Message cannot be empty.",
+                    nameof(newMessageText));
+            }
+
+            using var content =
+                new StringContent(
                     newMessageText,
-                    visibilityTimeout: TimeSpan.FromSeconds(0));
-            }
+                    Encoding.UTF8,
+                    "text/plain");
+
+            string url =
+                $"queue/{Uri.EscapeDataString(messageId)}";
+
+            HttpResponseMessage response =
+                await _httpClient.PutAsync(
+                    url,
+                    content);
+
+            response.EnsureSuccessStatusCode();
         }
 
-        // Delete a message
-        public async Task DeleteMessageAsync(string messageId)
-        {
-            var message = await FindMessageAsync(messageId);
 
-            if (message != null)
+        // DELETE /api/queue/{messageId}
+        // Deletes a message
+        public async Task DeleteMessageAsync(
+            string messageId)
+        {
+            if (string.IsNullOrWhiteSpace(messageId))
             {
-                await queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                throw new ArgumentException(
+                    "Message ID cannot be empty.",
+                    nameof(messageId));
             }
+
+            string url =
+                $"queue/{Uri.EscapeDataString(messageId)}";
+
+            HttpResponseMessage response =
+                await _httpClient.DeleteAsync(url);
+
+            if (response.StatusCode ==
+                HttpStatusCode.NotFound)
+            {
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
         }
     }
 }

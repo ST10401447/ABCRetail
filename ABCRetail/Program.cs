@@ -1,9 +1,10 @@
 
+using ABCRetail.Services;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.Shares;
 using Azure.Storage.Queues;
-using ABCRetail.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ABCRetail
 {
@@ -23,12 +24,13 @@ namespace ABCRetail
             builder.Services.AddSingleton(new QueueServiceClient(connectionString));
             builder.Services.AddSingleton(new ShareServiceClient(connectionString));
 
-            builder.Services.AddSingleton<TableStorageService>();
-            builder.Services.AddSingleton<BlobStorageService>();
-            builder.Services.AddSingleton<QueueStorageService>();
-            builder.Services.AddSingleton<FileStorageService>();
-            builder.Services.AddSingleton<ProductTableService>();
-            builder.Services.AddSingleton<OrderTableService>();
+            builder.Services.AddHttpClient<TableStorageService>();
+            builder.Services.AddHttpClient<BlobStorageService>();
+            builder.Services.AddHttpClient<QueueStorageService>();
+            builder.Services.AddHttpClient<FileStorageService>();
+            builder.Services.AddHttpClient<ProductTableService>();
+            builder.Services.AddHttpClient<OrderTableService>();
+            
 
             var app = builder.Build();
 

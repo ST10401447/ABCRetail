@@ -1,67 +1,92 @@
 ﻿using ABCRetail.Models;
-using Azure;
-using Azure.Data.Tables;
-using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Net.Http.Json;
 
 namespace ABCRetail.Services
 {
     public class OrderTableService
     {
-        private readonly TableClient tableClient;
+        private readonly HttpClient _httpClient;
 
-        // Constructor 
-        public OrderTableService(TableServiceClient tableServiceClient, IConfiguration configuration)
+        public OrderTableService(HttpClient httpClient)
         {
-            string tableName = configuration["AzureStorage:OrderTableName"];
-            tableClient = tableServiceClient.GetTableClient(tableName);
-            tableClient.CreateIfNotExists();
+            _httpClient = httpClient;
+
+            _httpClient.BaseAddress =
+                new Uri("http://localhost:7223/api/");
         }
 
-        // Adds a new order to Azure Table Storage
+        // CREATE
+        // POST: http://localhost:7223/api/orders
         public async Task AddOrderAsync(OrderEntity order)
         {
-            order.PartitionKey = "Order";
-            order.RowKey = Guid.NewGuid().ToString();
-            await tableClient.AddEntityAsync(order);
+            HttpResponseMessage response =
+                await _httpClient.PostAsJsonAsync(
+                    "orders",
+                    order);
+
+            response.EnsureSuccessStatusCode();
         }
 
-        // Gets all orders from the table
+        // READ ALL
+        // GET: http://localhost:7223/api/orders
         public async Task<List<OrderEntity>> GetAllOrdersAsync()
         {
-            List<OrderEntity> orders = new List<OrderEntity>();
+            HttpResponseMessage response =
+                await _httpClient.GetAsync("orders");
 
-            await foreach (OrderEntity entity in tableClient.QueryAsync<OrderEntity>())
-            {
-                orders.Add(entity);
-            }
+            response.EnsureSuccessStatusCode();
 
-            return orders;
+            List<OrderEntity>? orders =
+                await response.Content.ReadFromJsonAsync<List<OrderEntity>>();
+
+            return orders ?? new List<OrderEntity>();
         }
 
-        // Gets a single order by PartitionKey and RowKey
-        public async Task<OrderEntity?> GetOrderAsync(string partitionKey, string rowKey)
+        // READ ONE
+        // GET: http://localhost:7223/api/orders/{partitionKey}/{rowKey}
+        public async Task<OrderEntity?> GetOrderAsync(
+            string partitionKey,
+            string rowKey)
         {
-            try
-            {
-                var response = await tableClient.GetEntityAsync<OrderEntity>(partitionKey, rowKey);
-                return response.Value;
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
+            HttpResponseMessage response =
+                await _httpClient.GetAsync(
+                    $"orders/{Uri.EscapeDataString(partitionKey)}/{Uri.EscapeDataString(rowKey)}");
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
             }
+
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content
+                .ReadFromJsonAsync<OrderEntity>();
         }
 
-        // Updates an order in the table
+        // UPDATE
+        // PUT: http://localhost:7223/api/orders/{partitionKey}/{rowKey}
         public async Task UpdateOrderAsync(OrderEntity order)
         {
-            await tableClient.UpdateEntityAsync(order, ETag.All, TableUpdateMode.Replace);
+            HttpResponseMessage response =
+                await _httpClient.PutAsJsonAsync(
+                    $"orders/{Uri.EscapeDataString(order.PartitionKey ?? "")}/{Uri.EscapeDataString(order.RowKey ?? "")}",
+                    order);
+
+            response.EnsureSuccessStatusCode();
         }
 
-        // Deletes an order using PartitionKey and RowKey
-        public async Task DeleteOrderAsync(string partitionKey, string rowKey)
+        // DELETE
+        // DELETE: http://localhost:7223/api/orders/{partitionKey}/{rowKey}
+        public async Task DeleteOrderAsync(
+            string partitionKey,
+            string rowKey)
         {
-            await tableClient.DeleteEntityAsync(partitionKey, rowKey);
+            HttpResponseMessage response =
+                await _httpClient.DeleteAsync(
+                    $"orders/{Uri.EscapeDataString(partitionKey)}/{Uri.EscapeDataString(rowKey)}");
+
+            response.EnsureSuccessStatusCode();
         }
     }
 }

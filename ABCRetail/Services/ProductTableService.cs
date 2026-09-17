@@ -1,65 +1,124 @@
 ﻿using ABCRetail.Models;
-using Azure;
-using Azure.Data.Tables;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace ABCRetail.Services
 {
     public class ProductTableService
     {
-        private readonly TableClient tableClient;
+        private readonly HttpClient _httpClient;
 
-        // Constructor 
-        public ProductTableService(TableServiceClient tableServiceClient, IConfiguration configuration)
+        public ProductTableService(HttpClient httpClient)
         {
-            string tableName = configuration["AzureStorage:ProductTableName"];
-            tableClient = tableServiceClient.GetTableClient(tableName);
-            tableClient.CreateIfNotExists();
+            _httpClient = httpClient;
+
+            _httpClient.BaseAddress =
+                new Uri("http://localhost:7020/api/");
         }
 
-        // Adds a new product to Azure Table Storage
+        // CREATE - Add a new product
+        // POST: http://localhost:7020/api/products
         public async Task AddProductAsync(ProductEntity product)
         {
-            product.PartitionKey = "Product";
-            product.RowKey = Guid.NewGuid().ToString();
+            HttpResponseMessage response =
+                await _httpClient.PostAsJsonAsync(
+                    "products",
+                    product);
 
-            await tableClient.AddEntityAsync(product);
+            response.EnsureSuccessStatusCode();
         }
 
-        // Gets all products from the table
+        // READ - Get all products
+        // GET: http://localhost:7020/api/products
         public async Task<List<ProductEntity>> GetAllProductsAsync()
         {
-            List<ProductEntity> products = new List<ProductEntity>();
+            HttpResponseMessage response =
+                await _httpClient.GetAsync("products");
 
-            await foreach (ProductEntity entity in tableClient.QueryAsync<ProductEntity>())
-            {
-                products.Add(entity);
-            }
+            response.EnsureSuccessStatusCode();
 
-            return products;
+            string json =
+                await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<List<ProductEntity>>(
+                json,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                })
+                ?? new List<ProductEntity>();
         }
 
-        // Updates a product in the table
-        public async Task UpdateProductAsync(ProductEntity product)
+        // READ - Get one product
+        // GET: http://localhost:7020/api/products/{partitionKey}/{rowKey}
+        public async Task<ProductEntity?> GetProductAsync(
+            string partitionKey,
+            string rowKey)
         {
-            // Use ETag.All so it doesn't fail when ETag is empty
-            await tableClient.UpdateEntityAsync(product, ETag.All, TableUpdateMode.Replace);
-        }
-        public async Task<ProductEntity?> GetProductAsync(string partitionKey, string rowKey)
-        {
-            try
-            {
-                var response = await tableClient.GetEntityAsync<ProductEntity>(partitionKey, rowKey);
-                return response.Value;
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
+            HttpResponseMessage response =
+                await _httpClient.GetAsync(
+                    $"products/{Uri.EscapeDataString(partitionKey)}/{Uri.EscapeDataString(rowKey)}");
+
+            if (response.StatusCode ==
+                System.Net.HttpStatusCode.NotFound)
             {
                 return null;
             }
+
+            response.EnsureSuccessStatusCode();
+
+            string json =
+                await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ProductEntity>(
+                json,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
         }
-        // Deletes a product using PartitionKey and RowKey
-        public async Task DeleteProductAsync(string partitionKey, string rowKey)
+
+        // UPDATE - Update a product
+        // PUT: http://localhost:7020/api/products/{partitionKey}/{rowKey}
+        public async Task UpdateProductAsync(ProductEntity product)
         {
-            await tableClient.DeleteEntityAsync(partitionKey, rowKey);
+            if (string.IsNullOrWhiteSpace(product.PartitionKey))
+            {
+                throw new ArgumentException(
+                    "PartitionKey is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(product.RowKey))
+            {
+                throw new ArgumentException(
+                    "RowKey is required.");
+            }
+
+            HttpResponseMessage response =
+                await _httpClient.PutAsJsonAsync(
+                    $"products/{Uri.EscapeDataString(product.PartitionKey)}/{Uri.EscapeDataString(product.RowKey)}",
+                    product);
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        // DELETE - Delete a product
+        // DELETE: http://localhost:7020/api/products/{partitionKey}/{rowKey}
+        public async Task DeleteProductAsync(
+            string partitionKey,
+            string rowKey)
+        {
+            HttpResponseMessage response =
+                await _httpClient.DeleteAsync(
+                    $"products/{Uri.EscapeDataString(partitionKey)}/{Uri.EscapeDataString(rowKey)}");
+
+            if (response.StatusCode ==
+                System.Net.HttpStatusCode.NotFound)
+            {
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
         }
     }
 }
